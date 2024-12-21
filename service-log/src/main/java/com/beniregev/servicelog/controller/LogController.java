@@ -14,7 +14,11 @@ public class LogController {
    }
 
    @PostMapping("/v1/shuffledArray")
-   public ResponseEntity<String> createLogMessage(@RequestBody String body) {
+   public ResponseEntity<String> createLogMessage(@RequestBody String body) throws NoSuchFieldException {
+      if (body.isEmpty())
+         throw new IllegalArgumentException("Request body is empty");
+      if (!body.contains("\"logLevel\":") || !body.contains("\"message\":"))
+         throw new NoSuchFieldException("Request body does not contain required properties 'logLevel' or 'message'");
       String result = logService.createLogMessageShuffledArray(body);
       return ResponseEntity.ok(result);
    }
