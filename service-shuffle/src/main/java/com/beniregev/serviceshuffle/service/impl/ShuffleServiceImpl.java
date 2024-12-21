@@ -52,7 +52,7 @@ public class ShuffleServiceImpl implements ShuffleService {
       if (arrIntegers.length < 1) {
          throw new ArrayStoreException("Shuffled integers array length is " + arrIntegers.length);
       }
-      HttpRequest request = generateLogMessagePostRequest("Shuffled array with " + size + "elements: " + Arrays.toString(arrIntegers));
+       HttpRequest request = generateLogMessagePostRequest("Shuffled array with " + size + " elements: " + Arrays.toString(arrIntegers));
       StringBuffer sbResponseBody;
       try {
          HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
@@ -111,6 +111,10 @@ public class ShuffleServiceImpl implements ShuffleService {
       return shuffle(listIntegers);
    }
 
+   /**
+    * Return a String to acknowledge the code reached and received by the service.
+    * @return a String to acknowledge the code reached and received by the service
+    */
    @Override
    public String pingService() {
       return "Shuffle service is running and ready to process requests.";
@@ -119,7 +123,7 @@ public class ShuffleServiceImpl implements ShuffleService {
    private Integer[] shuffle(List<Integer> list) {
       for (int i=list.size(); i>1; i--) {
          int rnd = RND.nextInt(i);
-         list = swap(list, i - 1, rnd);
+         swap(list, i - 1, rnd);
       }
       return list.toArray(new Integer[list.size()]);
    }
