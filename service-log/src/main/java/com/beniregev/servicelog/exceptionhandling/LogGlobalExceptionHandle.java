@@ -13,6 +13,12 @@ public class LogGlobalExceptionHandle {
       return new ResponseEntity<>("Error: " + ex.getMessage(), HttpStatus.BAD_REQUEST);
    }
 
+   @ExceptionHandler(NoSuchFieldException.class)
+   public ResponseEntity<String> handleNoSuchFieldException(NoSuchFieldException ex) {
+      // Return a custom error message with HTTP 422 status
+      return new ResponseEntity<>("Error: " + ex.getMessage(), HttpStatus.UNPROCESSABLE_ENTITY);
+   }
+
    @ExceptionHandler(IllegalArgumentException.class)
    public ResponseEntity<String> handleIllegalArgumentException(IllegalArgumentException ex) {
       // Return a custom error message with HTTP 422 status
