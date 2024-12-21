@@ -135,12 +135,34 @@ public class ShuffleServiceImpl implements ShuffleService {
       return list;
    }
 
+   /**
+    * <div>
+    *    <p>
+    *       I know that the correct way to get the base-URL for service-log is
+    *       by getting the values from system/environment variables.
+    *    </p>
+    *    <p>
+    *       <div>
+    *          I just wanted to demonstrate at least one technique that I know how
+    *          to put the values in a ".properties" file, get them, and set them into
+    *          properties of a class.
+    *       </div>
+    *       <div>
+    *          Of course there are other ways, such as using {@link System#getenv(String)}
+    *          method, and others.
+    *       </div>
+    *    </p>
+    * </div>
+    * @param message
+    * @return {@link HttpRequest} generated using {@link HttpClient} from Java 11 to create
+    * the REST API request to be sent to "service-log".
+    */
    private HttpRequest generateLogMessagePostRequest(String message) {
-      String strLogServiceBaseUrl = logServiceProtocol + "://" + logServiceHost + ":" + logServicePort + "/" + logServicePath;
-      HttpRequest request = HttpRequest.newBuilder()
+      String strLogServiceBaseUrl = String.format("%s://%s:%s/%s", logServiceProtocol, logServiceHost, logServicePort, logServicePath);
+
+      return HttpRequest.newBuilder()
               .uri(URI.create(strLogServiceBaseUrl + "/v1/shuffledArray"))
               .POST(HttpRequest.BodyPublishers.ofString("{\"logLevel\":\"INFO\", \"message\": \""  + message + "\"}"))
               .build();
-      return request;
    }
 }
