@@ -23,7 +23,7 @@ public class ShuffleController {
       if ((size < 1) || (size > MAX_SHUFFLED_ARRAY_SIZE)) {
          throw new IllegalArgumentException("Size of the array must be between 1 and " + MAX_SHUFFLED_ARRAY_SIZE);
       }
-      return new ResponseEntity(shuffleService.generateShuffledArray(size), HttpStatus.CREATED);
+      return new ResponseEntity(shuffleService.generateAndLogShuffledArray(size), HttpStatus.CREATED);
    }
 
    @GetMapping(path = "/v1/ping")
