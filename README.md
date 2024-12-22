@@ -43,6 +43,12 @@ For example, for service-shuffle:
 - path=api/log
 - Swagger-UI URL will be: `http://localhost:8092/api/log/swagger-ui/index.html`
 
+To test the API POST request to log the shuffled array use the following format (replace the values as you wish:
+`{"sending": "Async", "logLevel": "INFO", "message": "Sending request from Swagger-UI"}`
+
+In the response object (JSON) you will receive a 4th property "timestamp" which has the value of `LocalDateTime.now()` 
+of when the request was processed by the service-log service layer.
+
 ## Running And Testing The Microservices
 Using IntelliJ IDEA in the "Run/Debug Configuration" I created:
 - Maven `mvn clean install` entry for each Microservice.
