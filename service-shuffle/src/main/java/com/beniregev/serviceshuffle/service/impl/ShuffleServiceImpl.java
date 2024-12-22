@@ -1,6 +1,9 @@
 package com.beniregev.serviceshuffle.service.impl;
 
 import com.beniregev.serviceshuffle.service.ShuffleService;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -9,10 +12,9 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Random;
+import java.util.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 
 
 @Service
@@ -47,13 +49,14 @@ public class ShuffleServiceImpl implements ShuffleService {
     * @return String. The response result (HTTP Status code and response body) of the REST API POST request call.
     */
    @Override
-   public String generateAndLogShuffledArray(int size) {
+   public Map<String, Object> generateAndLogShuffledArray(int size) {
       Integer[] arrIntegers = generateShuffledArray(size);
       if (arrIntegers.length < 1) {
          throw new ArrayStoreException("Shuffled integers array length is " + arrIntegers.length);
       }
-       HttpRequest request = generateLogMessagePostRequest("Shuffled array with " + size + " elements: " + Arrays.toString(arrIntegers));
+      HttpRequest request = generateLogMessagePostRequest("Sync", "Shuffled array with " + size + " elements: " + Arrays.toString(arrIntegers));
       StringBuffer sbResponseBody;
+      Map<String, Object> mapBody = null;
       try {
          HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
          if (response.statusCode()/100 != 2) {
@@ -63,16 +66,59 @@ public class ShuffleServiceImpl implements ShuffleService {
                     .append("\nResponse Body: \n")
                     .append(response.body());
          } else {
+            mapBody = getResponseBodyAsMap(response.body());
+            System.out.println("Response body received back in service-shuffle: " + mapBody);
             sbResponseBody = new StringBuffer("Calling POST requests SUCCESSFUL.")
                     .append("\nHTTP Status code: ")
                     .append(response.statusCode())
-                    .append("\nResponse Body: \n")
-                    .append(response.body());
+                    .append("\ntimestamp:")
+                    .append(mapBody.get("timestamp").toString())
+                    .append("\nRequest sent ")
+                    .append(mapBody.get("sending").toString())
+                    .append("\nlogLevel: ")
+                    .append(mapBody.get("logLevel").toString())
+                    .append("\nmessage text: \n")
+                    .append(mapBody.get("message").toString());
          }
       } catch (IOException | InterruptedException e) {
          throw new RuntimeException(e);
       }
-      return sbResponseBody.toString();
+
+      // Instead of blocking our code, we can sent the request asynchronously using sendAsync method.
+      // This method will immediately return a CompletableFuture instance.
+      try {
+         request = generateLogMessagePostRequest("Async", "Shuffled array with " + size + " elements: " + Arrays.toString(arrIntegers));
+         // Same request sent asynchronously using the sendAsync method
+         CompletableFuture<HttpResponse<String>> futureResponse = client.sendAsync(request, HttpResponse.BodyHandlers.ofString());
+         // The CompletableFuture completes with the HttpResponse once it becomes available
+         HttpResponse<String> response = futureResponse.get();
+         if (response.statusCode() / 100 != 2) {
+            sbResponseBody = new StringBuffer("Calling POST requests FAILED.")
+                    .append("\nHTTP Status code: ")
+                    .append(response.statusCode())
+                    .append("\nResponse Body: \n")
+                    .append(response.body());
+         } else {
+            mapBody = getResponseBodyAsMap(response.body());
+            System.out.println("Response body received back in service-shuffle: " + mapBody);
+            sbResponseBody = new StringBuffer("Calling POST requests SUCCESSFUL.")
+                    .append("\nHTTP Status code: ")
+                    .append(response.statusCode())
+                    .append("\ntimestamp:")
+                    .append(mapBody.get("timestamp").toString())
+                    .append("\nRequest sent ")
+                    .append(mapBody.get("sending").toString())
+                    .append("\nlogLevel: ")
+                    .append(mapBody.get("logLevel").toString())
+                    .append("\nmessage text: \n")
+                    .append(mapBody.get("message").toString());
+         }
+      } catch (InterruptedException e) {
+         throw new RuntimeException(e);
+      } catch (ExecutionException e) {
+         throw new RuntimeException(e);
+      }
+      return mapBody;
    }
 
    /**
@@ -157,12 +203,22 @@ public class ShuffleServiceImpl implements ShuffleService {
     * @return {@link HttpRequest} generated using {@link HttpClient} from Java 11 to create
     * the REST API request to be sent to "service-log".
     */
-   private HttpRequest generateLogMessagePostRequest(String message) {
+   private HttpRequest generateLogMessagePostRequest(String sending, String message) {
       String strLogServiceBaseUrl = String.format("%s://%s:%s/%s", logServiceProtocol, logServiceHost, logServicePort, logServicePath);
-
       return HttpRequest.newBuilder()
               .uri(URI.create(strLogServiceBaseUrl + "/v1/shuffledArray"))
-              .POST(HttpRequest.BodyPublishers.ofString("{\"logLevel\":\"INFO\", \"message\": \""  + message + "\"}"))
+              .POST(HttpRequest.BodyPublishers.ofString("{\"sending\": \"" + sending + "\", \"logLevel\":\"INFO\", \"message\": \""  + message + "\"}"))
               .build();
+   }
+
+   private Map<String, Object> getResponseBodyAsMap(String responseBody) {
+      ObjectMapper mapper = new ObjectMapper();
+      Map<String, Object> map;
+      try {
+         map = mapper.readValue(responseBody, new TypeReference<>() {});
+      } catch (JsonProcessingException e) {
+         throw new RuntimeException(e);
+      }
+      return map;
    }
 }
