@@ -9,6 +9,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Map;
+
 @RequestMapping(value = "/api/shuffle")
 @RestController
 public class ShuffleController {
@@ -23,15 +25,17 @@ public class ShuffleController {
    @Operation(summary = "Create a shuffled array of integers between 1 an value of size, without duplicates")
    @ApiResponses(value = {
            @ApiResponse(responseCode = "201", description = "Shuffled array of integers created successfully"),
+           @ApiResponse(responseCode = "400", description = "Response body received from service-log POST request is 'null'"),
            @ApiResponse(responseCode = "422", description = "either the value of size is not between 1 and 1000, or the shuffled array size is zero"),
            @ApiResponse(responseCode = "500", description = "Some other exception occurred while logging the request body")
    })
    @PostMapping(path="/v1/{size}")
-   public ResponseEntity<Integer[]> createShuffledArray(@PathVariable final int size) {
+   public ResponseEntity<Map<String, Object>> createShuffledArray(@PathVariable final int size) {
       if ((size < 1) || (size > MAX_SHUFFLED_ARRAY_SIZE)) {
          throw new IllegalArgumentException("Size of the array must be between 1 and " + MAX_SHUFFLED_ARRAY_SIZE);
       }
-      return new ResponseEntity(shuffleService.generateAndLogShuffledArray(size), HttpStatus.CREATED);
+      Map<String, Object> result = shuffleService.generateAndLogShuffledArray(size);
+      return new ResponseEntity(result, result != null ? HttpStatus.CREATED : HttpStatus.BAD_REQUEST);
    }
 
    @Operation(summary = "Ping the service-shuffle server")
