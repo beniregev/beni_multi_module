@@ -1,7 +1,9 @@
 package com.beniregev.serviceshuffle.service;
 
+import java.util.Map;
+
 public interface ShuffleService {
-   String generateAndLogShuffledArray(int size);
+   Map<String, Object> generateAndLogShuffledArray(int size);
    Integer[] generateShuffledArray(int size);
    String pingService();
 }
