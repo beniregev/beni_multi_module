@@ -7,6 +7,8 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Map;
+
 @RequestMapping(value = "/api/log")
 @RestController
 public class LogController {
@@ -23,12 +25,12 @@ public class LogController {
            @ApiResponse(responseCode = "500", description = "Some other exception occurred while logging the request body")
    })
    @PostMapping("/v1/shuffledArray")
-   public ResponseEntity<String> createLogMessage(@RequestBody String body) throws NoSuchFieldException {
+   public ResponseEntity<Map<String, Object>> createLogMessage(@RequestBody String body) throws NoSuchFieldException {
       if (body.isEmpty())
          throw new IllegalArgumentException("Request body is empty");
-      if (!body.contains("\"logLevel\":") || !body.contains("\"message\":"))
-         throw new NoSuchFieldException("Request body does not contain required properties 'logLevel' or 'message'");
-      String result = logService.createLogMessageShuffledArray(body);
+      if (!body.contains("\"sending\":") || !body.contains("\"logLevel\":") || !body.contains("\"message\":"))
+         throw new NoSuchFieldException("Request body does not contain one or more required properties 'sending' or 'logLevel' or 'message'");
+      Map<String, Object> result = logService.createLogMessageShuffledArray(body);
       return ResponseEntity.ok(result);
    }
 
