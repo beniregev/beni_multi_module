@@ -38,7 +38,7 @@ public class ShuffleServiceImpl implements ShuffleService {
     *       This method does the flow of the exercise End-to-End (E2E):
     *       <ul>
     *          <li>Calling method {@link #generateShuffledArray(int)} to create the shuffled array <b>without duplicates</b>.</li>
-    *          <li>Calling method {@link #generateLogMessagePostRequest(String)} to generate the {@link HttpRequest} to log the generated shuffled array.</li>
+    *          <li>Calling method {@link #generateLogMessagePostRequest(String, String)} to generate the {@link HttpRequest} to log the generated shuffled array.</li>
     *          <li>Sending the REST API POST request to the {@code service-log}, handling possible exception(s).</li>
     *          <li>Handling the returned {@link HttpResponse} checking HttpStatus code and response body.</li>
     *          <li>Returning the response body to the {@link com.beniregev.serviceshuffle.controller.ShuffleController} as a {@link String}.</li>
